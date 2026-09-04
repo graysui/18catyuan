@@ -1725,11 +1725,19 @@ const catvodCompatWrapApi = (source, overrides = {}) => {
   const originalApi = source.api;
   source.api = async router => {
     const wrappedRouter = Object.create(router);
+    let homeVideoContentRegistered = false;
     wrappedRouter.post = (route, handler, ...options) => {
+      if (route === "/homeVideoContent") homeVideoContentRegistered = true;
       const actualHandler = overrides[route] || handler;
       return router.post(route, catvodCompatInvoke(source.meta.key, route, actualHandler), ...options);
     };
-    return originalApi(wrappedRouter);
+    await originalApi(wrappedRouter);
+    if (!homeVideoContentRegistered) {
+      router.post(
+        "/homeVideoContent",
+        catvodCompatInvoke(source.meta.key, "/homeVideoContent", async () => ({ list: [] }))
+      );
+    }
   };
 };
 const catvodCompatDecodeRouEv = ev => {
@@ -1796,6 +1804,7 @@ catvodCompatWrapApi(jz);
 catvodCompatWrapApi(_z);
 catvodCompatWrapApi(Cz);
 catvodCompatWrapApi(Oz);
+for (const source of [fz, pz, gz, yz, Tz, Iz]) catvodCompatWrapApi(source);
 /*! Bundled license information:
 
 forwarded/index.js:
